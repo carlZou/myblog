@@ -26,6 +26,12 @@ class User(db.Model):
         return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(
             digest, size)
 
+    def to_dict(self):
+        username = self.username
+        lastseen = self.last_seen
+        dict = {'username': username, 'lastseen': lastseen}
+        return dict
+
 
 def getuser(username):
     return User.query.filter_by(username=username).first()

@@ -1,8 +1,8 @@
 from flask import request, session
 
 from blogapp import app, db
-from blogapp.models.user import getuser, User
-from blogapp.routes.utils import res
+from blogapp.models.user import User
+from blogapp.routes.utils import res, result
 
 
 @app.route('/signin', methods=['POST'])
@@ -11,15 +11,14 @@ def signin():
     password = request.args.get('password')
     user = User.query.filter_by(username=username).first()
     if user is not None and user.check_password(password):
-        success = True
-        code = 200
-        errMsg = ''
-    else:
+        code = result.SUCC
         session['username'] = username
-        success = False
-        code = 100
-        errMsg = 'please check your username or password and try again!'
-    return res(success, code, errMsg)
+        if username == 'carl':
+            session['admin'] = username
+    else:
+        code = result.FAIL
+        errmsg = 'please check your username or password and try again!'
+    return res(code=code, errmsg=errmsg)
 
 
 @app.route('/signup', methods=['POST'])
@@ -27,28 +26,28 @@ def signup():
     username = request.args.get('username')
     password = request.args.get('password')
     repassword = request.args.get('repassword')
-    succ = False
     if username is not None and User.query.filter_by(username=username).first() is not None:
-        code = 101
+        code = result.PARAM_ERR
         errmsg = 'This username already been used！'
     else:
         if password is not None and password != repassword:
-            code = 100
+            code = result.SUCC
             errmsg = 'please check you password, it seems like diff!'
         else:
             user = User(username=username)
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
-            succ = True
-            code = 200
-            errmsg = ''
-    return res(succ, code, errmsg)
+            code = result.SUCC
+    return res(code=code, errmsg=errmsg)
 
 
-@app.route('/user/getAll', methods=['GET', 'POST'])
-def getAllUSer():
-    succ = False
-    code = 405
-    errmsg = session.get('username', 'not set')
-    return res(succ, code, errmsg)
+@app.route('/signout')
+def signout():
+    if 'username' in session:
+        session.pop('username')
+        code = result.SUCC
+    else:
+        code = result.NOT_LOGIN
+        errmsg = 'You haven not sign in yet !'
+    return res(code=code, errmsg=errmsg)
