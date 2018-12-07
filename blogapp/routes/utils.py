@@ -29,7 +29,6 @@ def require_login(func):
             return res(False, 405, 'no auth')
         else:
             return func(*args, **kwargs)
-
     return inner
 
 
@@ -41,5 +40,4 @@ def require_admin(func):
             return res(False, 405, 'no auth')
         else:
             return func(*args, **kwargs)
-
     return inner

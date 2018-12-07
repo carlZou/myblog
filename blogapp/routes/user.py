@@ -16,7 +16,14 @@ def getAllUSer():
 @require_login
 def delUser():
     username = request.args.get('username')
-    return res(code=result.SUCC)
+    try:
+        User.delete.filter_by(username=username)
+    except Exception:
+        code = result.PARAM_ERR
+        errmsg = 'failed to delete {}'.format(username)
+    else:
+        code = result.SUCC
+    return res(code=code, errmsg=errmsg)
 
 
 @app.route('/user/modify', methods=['GET', 'POST'])
@@ -24,3 +31,12 @@ def delUser():
 def modify():
     username = request.args.get('username')
     password = request.args.get('password')
+    new_password = request.args.get('newpassword')
+    user = User.query.filter_by(username).first()
+    if user.check_password(password):
+        user.set_password(new_password)
+        resCode = result.SUCC
+    else:
+        resCode = result.PARAM_ERR
+        errmsg = 'Your old password was wrong!'
+    return res(code=resCode, errmsg=errmsg)
